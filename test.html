@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Parse URL Query Parameters</title>
+  </head>
+  <body>
+    <h1>Bitsurance Widget Test</h1>
+    <hr/>
+    <p>
+        wallet: <span id="wallet"></span>
+    </p>
+    <p>
+        lang: <span id="lang"></span>
+    </p>
+    <hr/>
+    <p>
+        xpub: <span id="xpub"></span>
+    </p>
+    <p>
+        address: <span id="address"></span>
+    </p>
+    <p>
+        signature-message: <span id="message"></span>
+    </p>
+    <p>
+        signature: <span id="signature"></span>
+    </p>
+
+    <script>
+
+      let gotSignature = false;
+      let gettingSignature = false;
+
+      // Get the URL query parameters
+      const urlParams = new URLSearchParams(window.location.search);
+ 
+      const wallet = urlParams.get('wallet');
+      const walletElement = document.getElementById('wallet');
+      walletElement.textContent = wallet;
+
+      const lang = urlParams.get('lang');
+      const langElement = document.getElementById('lang');
+      langElement.textContent = lang;
+
+      // Button action
+      function buttonClick() {
+
+        if (gettingSignature) {
+          console.log("Ignoring double click while getting signature");
+          return;
+        }
+
+        if (!gotSignature) {
+            gettingSignature = true;
+
+            signatureMessage = "bitsurance-" + (Math.floor(Math.random() * 899999)+100000);
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = signatureMessage;
+       
+            const msgdata = {
+  "version": "0",
+  "type": "requestAddress",
+  "withMessageSignature": signatureMessage,
+  "withExtendedPublicKey": true,
+  "withScriptType": "p2pkh"
+}
+            parent.postMessage(JSON.stringify(msgdata), '*');
+
+            document.getElementById('button').textContent = "Getting Signature ...";
+        } else {
+            alert("TODO: send contract signed info to bitboxapp");
+            document.getElementById('button').textContent = "Done";
+        }
+
+      }
+
+      // Add an event listener to receive messages from the parent window
+      window.addEventListener('message', (event) => {
+        const message = event.data;
+        try {
+
+            messageObject = JSON.parse(message);
+            if (!messageObject) {
+                throw new Error("message not an object");
+            }
+            if (!messageObject.type || messageObject.type != "address") {
+                throw new Error("message type not address");
+            }
+                    
+            document.getElementById('xpub').textContent = messageObject.extendedPublicKey;
+            document.getElementById('address').textContent = messageObject.bitcoinAddress;
+            document.getElementById('signature').textContent = messageObject.signature;
+
+            gettingSignature=false;
+            gotSignature=true;
+            document.getElementById('button').textContent = "Accept Contract";
+
+        } catch (e) {
+          console.log("Error parsing message: " + e);
+          alert("Error parsing message: " + e);
+          gettingSignature=false;
+          document.getElementById('button').textContent = "Proof with Signature";
+          return;
+        }   
+      });
+
+    </script>
+
+    <button id="button" onclick="buttonClick()">Proof with Signature</button>
+
+  </body>
+</html>
