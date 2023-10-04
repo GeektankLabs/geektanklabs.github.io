@@ -10,6 +10,9 @@
         wallet: <span id="wallet"></span>
     </p>
     <p>
+        version: <span id="version"></span>
+    </p>
+    <p>
         lang: <span id="lang"></span>
     </p>
     <hr/>
@@ -37,6 +40,10 @@
       const wallet = urlParams.get('wallet');
       const walletElement = document.getElementById('wallet');
       walletElement.textContent = wallet;
+
+      const version = urlParams.get('version');
+      const versionElement = document.getElementById('version');
+      versionElement.textContent = version;
 
       const lang = urlParams.get('lang');
       const langElement = document.getElementById('lang');
